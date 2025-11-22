@@ -3,14 +3,7 @@
 import electron from "electron";
 import path from "node:path";
 
-const {
-  app,
-  BrowserWindow,
-  Menu,
-  shell,
-  ipcMain,
-  dialog,
-} = electron;
+const { app, BrowserWindow, Menu, shell, ipcMain, dialog } = electron;
 
 const __filename = new URL(import.meta.url).pathname;
 const __dirname = path.dirname(__filename);
