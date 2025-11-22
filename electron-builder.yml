@@ -1,0 +1,65 @@
+appId: com.involvex.videostudio
+productName: Video Studio
+directories:
+  output: dist
+  buildResources: build
+files:
+  - "dist/**/*"
+  - "node_modules/**/*"
+  - "!**/node_modules/*/test/**/*"
+  - "!**/node_modules/*/docs/**/*"
+  - "!**/node_modules/*/.bin/**/*"
+  - "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}"
+  - "!**/node_modules/*/{test,spec,tests,-test,-spec,.test,.spec}"
+  - "!**/node_modules/*.d.ts"
+  - "!**/node_modules/.bin"
+  - "!**/node_modules/*/src/**/*"
+  - "!src/**/*"
+  - "!public/**/*"
+  - "!.next/**/*"
+  - "!out/**/*"
+
+extraResources:
+  - from: "public"
+    to: "public"
+    filter: ["**/*"]
+
+# Build configuration for different platforms
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+    - target: portable
+      arch:
+        - x64
+  icon: "src/app/app.ico"
+  artifactName: "${productName}-${version}-${arch}.${ext}"
+
+
+
+
+
+# Compression
+compression: maximum
+
+# NSIS configuration (Windows)
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: "Video Studio"
+  include: "build/installer.nsh"
+
+
+# Build environment
+nodeGypRebuild: false
+buildDependenciesFromSource: false
+npmRebuild: false
+
+# Additional build options
+buildVersion: 1
+buildNumber: "${env.BUILD_ID}"
+forceCodeSigning: false
+
