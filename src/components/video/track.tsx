@@ -5,6 +5,8 @@ import {
   useProjectMediaItems,
 } from "@/data/queries";
 import type { MediaItem, VideoKeyFrame, VideoTrack } from "@/data/schema";
+import { useProjectId, useVideoProjectStore } from "@/data/store";
+import { fal } from "@/lib/fal";
 import { cn, resolveDuration, resolveMediaUrl, trackIcons } from "@/lib/utils";
 import {
   keepPreviousData,
@@ -21,8 +23,6 @@ import {
   useRef,
 } from "react";
 import { WithTooltip } from "../ui/tooltip";
-import { useProjectId, useVideoProjectStore } from "@/data/store";
-import { fal } from "@/lib/fal";
 
 type VideoTrackRowProps = {
   data: VideoTrack;
@@ -75,11 +75,16 @@ function AudioWaveform({ data }: AudioWaveformProps) {
       if (data.metadata?.waveform && Array.isArray(data.metadata.waveform)) {
         return data.metadata.waveform;
       }
+      const mediaUrl = resolveMediaUrl(data);
+      if (!mediaUrl) {
+        return [];
+      }
+
       const { data: waveformInfo } = await fal.subscribe(
         "fal-ai/ffmpeg-api/waveform",
         {
           input: {
-            media_url: resolveMediaUrl(data),
+            media_url: mediaUrl,
             points_per_second: 5,
             precision: 3,
           },
@@ -117,10 +122,11 @@ function AudioWaveform({ data }: AudioWaveformProps) {
             const height = Math.max(amplitude * svgHeight, 2);
             const x = index * 3;
             const y = (svgHeight - height) / 2;
+            const rectId = `waveform-rect-${data.id}-${index}`;
 
             return (
               <rect
-                key={index}
+                key={rectId}
                 x={x}
                 y={y}
                 width="2"
@@ -317,7 +323,6 @@ export function VideoTrackView({
       ref={trackRef}
       onMouseDown={handleMouseDown}
       onContextMenu={(e) => e.preventDefault()}
-      aria-checked={isSelected}
       onClick={handleOnClick}
       className={cn(
         "flex flex-col border border-white/10 rounded-lg",
@@ -351,6 +356,7 @@ export function VideoTrackView({
               <WithTooltip tooltip="Remove content">
                 <button
                   type="button"
+                  aria-label="Remove content"
                   className="p-1 rounded hover:bg-black/5 group-hover:text-white"
                   onClick={handleOnDelete}
                 >
@@ -361,13 +367,15 @@ export function VideoTrackView({
           </div>
         </div>
         <div
-          className="p-px flex-1 items-center bg-repeat-x h-full max-h-full overflow-hidden relative"
+          className={cn(
+            "p-px flex-1 items-center bg-repeat-x h-full max-h-full overflow-hidden relative",
+            imageUrl && "track-background-image",
+          )}
           style={
             imageUrl
-              ? {
-                  background: `url(${imageUrl})`,
-                  backgroundSize: "auto 100%",
-                }
+              ? ({
+                  ["--track-bg-url" as string]: `url(${imageUrl})`,
+                } as React.CSSProperties)
               : undefined
           }
         >

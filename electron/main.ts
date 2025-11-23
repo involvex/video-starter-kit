@@ -1,12 +1,17 @@
 // @ts-nocheck
-// Use ES modules for Electron API
-import electron from "electron";
-import path from "node:path";
+// Use CommonJS require for Electron to ensure proper import
+const {
+  app,
+  BrowserWindow,
+  Menu,
+  shell,
+  ipcMain,
+  dialog,
+} = require("electron");
+const path = require("node:path");
+const url = require("node:url");
 
-const { app, BrowserWindow, Menu, shell, ipcMain, dialog } = electron;
-
-const __filename = new URL(import.meta.url).pathname;
-const __dirname = path.dirname(__filename);
+// __filename and __dirname are available globally in CommonJS
 
 // Handle app command line arguments
 process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = "true";

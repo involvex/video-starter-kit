@@ -22,7 +22,7 @@
     "electron:start": "npm run electron:build && npm run electron:dev:fast",
     "electron:prod": "npm run electron:build && cross-env NODE_ENV=production electron .",
     "electron:pack": "npm run electron:build && electron-builder --dir",
-    "electron:dist": "npm run build && npm run electron:build && electron-builder build --publish never",
+    "electron:dist": "npm run build && npm run electron:build && electron-builder --config=electron-builder-minimal.yml --win --x64",
     "electron-build": "electron-builder build --publish never"
   },
   "dependencies": {

@@ -43,15 +43,45 @@ export function ExportDialog({ onOpenChange, ...props }: ExportDialogProps) {
   const exportVideo = useMutation({
     mutationFn: async () => {
       const mediaItems = composition.mediaItems;
-      const videoData = composition.tracks.map((track) => ({
-        id: track.id,
-        type: track.type === "video" ? "video" : "audio",
-        keyframes: composition.frames[track.id].map((frame) => ({
-          timestamp: frame.timestamp,
-          duration: frame.duration,
-          url: resolveMediaUrl(mediaItems[frame.data.mediaId]),
-        })),
-      }));
+      const videoData = composition.tracks
+        .map((track) => {
+          const keyframes = composition.frames[track.id]
+            .map((frame) => {
+              const url = resolveMediaUrl(mediaItems[frame.data.mediaId]);
+              if (!url) return null;
+              return {
+                timestamp: frame.timestamp,
+                duration: frame.duration,
+                url,
+              };
+            })
+            .filter(
+              (
+                frame,
+              ): frame is {
+                timestamp: number;
+                duration: number;
+                url: string;
+              } => frame !== null,
+            );
+
+          if (keyframes.length === 0) return null;
+
+          return {
+            id: track.id,
+            type: track.type === "video" ? "video" : "audio",
+            keyframes,
+          };
+        })
+        .filter(
+          (
+            track,
+          ): track is {
+            id: string;
+            type: string;
+            keyframes: { timestamp: number; duration: number; url: string }[];
+          } => track !== null,
+        );
       if (videoData.length === 0) {
         throw new Error("No tracks to export");
       }
@@ -146,7 +176,16 @@ export function ExportDialog({ onOpenChange, ...props }: ExportDialogProps) {
               src={exportVideo.data.video_url}
               controls
               className="w-full h-full"
-            />
+            >
+              <track
+                kind="captions"
+                src=""
+                srcLang="en"
+                label="English"
+                default
+                data-none="true"
+              />
+            </video>
           )}
         </div>
         <div className="flex flex-col gap-4">
@@ -160,9 +199,15 @@ export function ExportDialog({ onOpenChange, ...props }: ExportDialogProps) {
             <Button
               size="icon"
               variant="ghost"
-              onClick={() =>
-                navigator.clipboard.writeText(exportVideo.data?.video_url ?? "")
-              }
+              onClick={async () => {
+                try {
+                  await navigator.clipboard.writeText(
+                    exportVideo.data?.video_url ?? "",
+                  );
+                } catch (error) {
+                  console.error("Failed to copy to clipboard:", error);
+                }
+              }}
               disabled={exportVideo.data === undefined}
             >
               <CopyIcon className="w-5 h-5" />
@@ -184,10 +229,17 @@ export function ExportDialog({ onOpenChange, ...props }: ExportDialogProps) {
             aria-disabled={actionsDisabled || !exportVideo.data}
             asChild
           >
-            <a href={exportVideo.data?.video_url ?? "#"} download>
-              <DownloadIcon className="w-4 h-4" />
-              Download
-            </a>
+            {exportVideo.data?.video_url ? (
+              <a href={exportVideo.data.video_url} download>
+                <DownloadIcon className="w-4 h-4" />
+                Download
+              </a>
+            ) : (
+              <span>
+                <DownloadIcon className="w-4 h-4" />
+                Download
+              </span>
+            )}
           </Button>
           <Button
             onClick={() => exportVideo.mutate()}
